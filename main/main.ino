@@ -30,7 +30,19 @@ void setup()
 {
   Serial.begin(9600);
   delay(SECOND_CHANGE_THRESHOLD);
-  pinMode(led_pin, OUTPUT);
+  DDRB |= B00111111;
+}
+
+// Only for PORTB
+void outputBCD( uint8_t number )
+{
+  uint8_t portbBuffer = PORTB;
+  
+  portbBuffer &= B00100000;
+  number &= B00001111;
+  portbBuffer |= number;
+
+  PORTB = portbBuffer;
 }
 
 void updateBuffer()
@@ -39,13 +51,13 @@ void updateBuffer()
   {
     seconds++;
     newSecondFlag = true;
-    digitalWrite(led_pin, HIGH);
+    PORTB |= B00100000;
   }
 
   if ( msCounter > SECOND_CHANGE_THRESHOLD && newSecondFlag )
   {
     newSecondFlag = false;
-    digitalWrite(led_pin, LOW);
+    PORTB &= B11011111;
   }
 
   if ( seconds == SECONDS_PER_MINUTE )
@@ -77,5 +89,7 @@ void loop()
   {
     strcpy(time, timeBuffer);
     Serial.println(timeBuffer);
+    outputBCD(time[7]);
   }
+  
 }
